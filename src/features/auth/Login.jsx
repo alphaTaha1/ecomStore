@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "./firebase/config";
+
+import { auth, db } from "./firebase/config";
 import "./Auth.css";
 
 function Login() {
@@ -20,10 +22,31 @@ function Login() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-      // Login successful → go to Products page
-      navigate("/Home", { replace: true });
+      const user = userCredential.user;
+
+      // Get user's data from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (!userDoc.exists()) {
+        setError("User profile was not found.");
+        return;
+      }
+
+      const userData = userDoc.data();
+
+      console.log("Logged in user:", {
+        uid: user.uid,
+        ...userData,
+      });
+
+      // Login successful → go to Home
+      navigate("/", { replace: true });
     } catch (error) {
       if (
         error.code === "auth/invalid-credential" ||

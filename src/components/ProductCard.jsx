@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 function ProductCard({ product }) {
   return (
     <div className="product-card">
-
       {product.imageUrl ? (
         <img
           src={product.imageUrl}
@@ -17,7 +16,6 @@ function ProductCard({ product }) {
       )}
 
       <div className="product-info">
-
         <div className="product-category">
           {product.category || "Product"}
         </div>
@@ -31,7 +29,6 @@ function ProductCard({ product }) {
         </p>
 
         <div className="product-bottom">
-
           <span className="product-price">
             ${Number(product.price || 0).toFixed(2)}
           </span>
@@ -42,7 +39,6 @@ function ProductCard({ product }) {
           >
             View
           </Link>
-
         </div>
       </div>
     </div>

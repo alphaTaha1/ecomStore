@@ -1,7 +1,15 @@
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
-import ProductCard from "../components/ProductCard";
 
-function Home({ products }) {
+import ProductCard from "../components/ProductCard";
+import { db } from "../features/auth/firebase/config";
+
+function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const dummyProducts = [
     {
       id: "dummy-1",
@@ -9,7 +17,8 @@ function Home({ products }) {
       price: 4999,
       imageUrl:
         "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
-      description: "Premium wireless headphones with clear sound and deep bass.",
+      description:
+        "Premium wireless headphones with clear sound and deep bass.",
     },
     {
       id: "dummy-2",
@@ -17,7 +26,8 @@ function Home({ products }) {
       price: 7999,
       imageUrl:
         "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
-      description: "Modern smartwatch with fitness tracking and notifications.",
+      description:
+        "Modern smartwatch with fitness tracking and notifications.",
     },
     {
       id: "dummy-3",
@@ -25,7 +35,8 @@ function Home({ products }) {
       price: 6499,
       imageUrl:
         "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-      description: "Comfortable running shoes designed for everyday activity.",
+      description:
+        "Comfortable running shoes designed for everyday activity.",
     },
     {
       id: "dummy-4",
@@ -33,14 +44,42 @@ function Home({ products }) {
       price: 3499,
       imageUrl:
         "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600",
-      description: "Durable backpack with plenty of space for everyday essentials.",
+      description:
+        "Durable backpack with plenty of space for everyday essentials.",
     },
   ];
 
-  // Use Firebase products when available.
-  // Otherwise, display dummy products.
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const productsSnapshot = await getDocs(
+          collection(db, "products")
+        );
+
+        const productsData = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        console.log("Products from Firebase:", productsData);
+
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Error loading products:", error);
+        setError("Unable to load products.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const productsToDisplay =
-    products && products.length > 0 ? products : dummyProducts;
+    products.length > 0 ? products : dummyProducts;
 
   const featuredProducts = productsToDisplay.slice(0, 4);
 
@@ -91,18 +130,32 @@ function Home({ products }) {
             <p>Check out some of our latest products.</p>
           </div>
 
-          <div className="product-grid">
-            {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <p>Loading products...</p>
+          ) : (
+            <>
+              {error && (
+                <p className="auth-error">
+                  {error} Showing sample products instead.
+                </p>
+              )}
 
-          {/* View All Products */}
+              <div className="product-grid">
+                {featuredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
           <div className="section-action">
-            <Link to="/products" className="btn btn-primary">
+            <Link
+              to="/products"
+              className="btn btn-primary"
+            >
               View All Products
             </Link>
           </div>

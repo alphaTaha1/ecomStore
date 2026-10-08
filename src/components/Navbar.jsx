@@ -1,6 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { Link, useNavigate } from "react-router-dom";
+
 import { auth } from "../firebase/config";
 import { logoutUser } from "../features/auth/authService";
 
@@ -21,6 +22,7 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      setMenuOpen(false);
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -30,7 +32,6 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-
         <Link to="/" className="navbar-logo">
           ShopEasy
         </Link>
@@ -38,6 +39,7 @@ function Navbar() {
         <button
           className="mobile-menu-button"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle navigation menu"
         >
           ☰
         </button>
@@ -48,24 +50,37 @@ function Navbar() {
             display: menuOpen ? "flex" : undefined,
           }}
         >
-          <Link to="/">Home</Link>
-          <Link to="/products">Products</Link>
+          <Link to="/" onClick={() => setMenuOpen(false)}>
+            Home
+          </Link>
 
-          {user && <Link to="/cart">Cart</Link>}
+          <Link to="/products" onClick={() => setMenuOpen(false)}>
+            Products
+          </Link>
 
-          {user && <Link to="/orders">Orders</Link>}
+          {user && (
+            <Link to="/cart" onClick={() => setMenuOpen(false)}>
+              Cart
+            </Link>
+          )}
+
+          {user && (
+            <Link to="/orders" onClick={() => setMenuOpen(false)}>
+              Orders
+            </Link>
+          )}
 
           {user?.role === "admin" && (
-            <Link to="/admin/products">Admin</Link>
+            <Link to="/admin/products" onClick={() => setMenuOpen(false)}>
+              Admin
+            </Link>
           )}
         </div>
 
         <div className="navbar-actions">
           {user ? (
             <>
-              <span className="navbar-user">
-                {user.email}
-              </span>
+              <span className="navbar-user">{user.email}</span>
 
               <button
                 className="btn btn-outline"
@@ -86,7 +101,6 @@ function Navbar() {
             </>
           )}
         </div>
-
       </div>
     </nav>
   );
