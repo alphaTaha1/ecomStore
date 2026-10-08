@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "./firebase/config";
+import { auth, db } from "./firebase/config";
 import "./Auth.css";
 
 function Login() {
@@ -20,10 +21,36 @@ function Login() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Login with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
+      const user = userCredential.user;
+
+      // Get user's data from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (!userDoc.exists()) {
+        setError("User profile was not found.");
+        return;
+      }
+
+      const userData = userDoc.data();
+
+      console.log("Logged in user:", {
+        uid: user.uid,
+        ...userData,
+      });
+
+      // Redirect after successful login
       navigate("/");
     } catch (error) {
+      console.log("Firebase login error:", error.code);
+      console.log("Firebase login message:", error.message);
+
       if (
         error.code === "auth/invalid-credential" ||
         error.code === "auth/user-not-found" ||
@@ -32,6 +59,8 @@ function Login() {
         setError("Invalid email or password.");
       } else if (error.code === "auth/invalid-email") {
         setError("Please enter a valid email address.");
+      } else if (error.code === "permission-denied") {
+        setError("You do not have permission to access your profile.");
       } else {
         setError("Unable to login. Please try again.");
       }
