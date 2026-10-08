@@ -1,14 +1,21 @@
-export default function Button({
+function Button({
   children,
+  type = "button",
   variant = "primary",
   className = "",
-  ...props
+  onClick,
+  disabled = false,
 }) {
-  const variantClass = variant === "secondary" ? "button-secondary" : "";
-
   return (
-    <button className={`button ${variantClass} ${className}`.trim()} {...props}>
+    <button
+      type={type}
+      className={`btn btn-${variant} ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
 }
+
+export default Button;

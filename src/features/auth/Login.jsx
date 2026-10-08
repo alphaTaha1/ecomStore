@@ -22,7 +22,8 @@ function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
-      navigate("/");
+      // Login successful → go to Products page
+      navigate("/products", { replace: true });
     } catch (error) {
       if (
         error.code === "auth/invalid-credential" ||

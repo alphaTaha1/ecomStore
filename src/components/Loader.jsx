@@ -1,7 +1,9 @@
-export default function Loader({ label = "Loading..." }) {
+function Loader() {
   return (
-    <div aria-live="polite" className="loader" role="status">
-      {label}
+    <div className="loader-container">
+      <div className="loader"></div>
     </div>
   );
 }
+
+export default Loader;

@@ -1,27 +1,95 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase/config";
+import { logoutUser } from "../features/auth/authService";
 
-const links = [
-  { to: "/products", label: "Shop" },
-  { to: "/cart", label: "Cart" },
-  { to: "/orders", label: "Orders" },
-  { to: "/login", label: "Sign in" },
-];
+function Navbar() {
+  const navigate = useNavigate();
 
-export default function Navbar() {
+  const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
-    <header className="site-header">
-      <div className="container nav-inner">
-        <Link className="brand" to="/">
-          ecom<span>Store</span>
+    <nav className="navbar">
+      <div className="navbar-container">
+
+        <Link to="/" className="navbar-logo">
+          ShopEasy
         </Link>
-        <nav aria-label="Main navigation" className="nav-links">
-          {links.map((link) => (
-            <NavLink key={link.to} to={link.to}>
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
+
+        <button
+          className="mobile-menu-button"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          ☰
+        </button>
+
+        <div
+          className="navbar-links"
+          style={{
+            display: menuOpen ? "flex" : undefined,
+          }}
+        >
+          <Link to="/">Home</Link>
+          <Link to="/products">Products</Link>
+
+          {user && <Link to="/cart">Cart</Link>}
+
+          {user && <Link to="/orders">Orders</Link>}
+
+          {user?.role === "admin" && (
+            <Link to="/admin/products">Admin</Link>
+          )}
+        </div>
+
+        <div className="navbar-actions">
+          {user ? (
+            <>
+              <span className="navbar-user">
+                {user.email}
+              </span>
+
+              <button
+                className="btn btn-outline"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-outline">
+                Login
+              </Link>
+
+              <Link to="/register" className="btn btn-primary">
+                Register
+              </Link>
+            </>
+          )}
+        </div>
+
       </div>
-    </header>
+    </nav>
   );
 }
+
+export default Navbar;
