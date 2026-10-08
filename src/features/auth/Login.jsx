@@ -23,7 +23,7 @@ function Login() {
       await signInWithEmailAndPassword(auth, email, password);
 
       // Login successful → go to Products page
-      navigate("/products", { replace: true });
+      navigate("/Home", { replace: true });
     } catch (error) {
       if (
         error.code === "auth/invalid-credential" ||
