@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 
 const links = [
   { to: "/products", label: "Shop" },
+  { to: "/admin/products", label: "Manage products" },
   { to: "/cart", label: "Cart" },
   { to: "/orders", label: "Orders" },
   { to: "/login", label: "Sign in" },
