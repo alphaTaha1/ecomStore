@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import { auth } from "../firebase/config";
+import { auth } from "../features/auth/firebase/config";
 import { logoutUser } from "../features/auth/authService";
 
 function Navbar() {
@@ -30,50 +30,58 @@ function Navbar() {
   };
 
   return (
-    <nav className="navbar">
+    <nav aria-label="Main navigation" className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
           ShopEasy
         </Link>
 
         <button
-          className="mobile-menu-button"
-          onClick={() => setMenuOpen(!menuOpen)}
+          aria-controls="primary-navigation"
+          aria-expanded={menuOpen}
           aria-label="Toggle navigation menu"
+          className="mobile-menu-button"
+          onClick={() => setMenuOpen((open) => !open)}
+          type="button"
         >
           ☰
         </button>
 
         <div
-          className="navbar-links"
-          style={{
-            display: menuOpen ? "flex" : undefined,
-          }}
+          className={`navbar-links${menuOpen ? " is-open" : ""}`}
+          id="primary-navigation"
         >
-          <Link to="/" onClick={() => setMenuOpen(false)}>
+          <NavLink
+            end
+            to="/"
+            onClick={() => setMenuOpen(false)}
+          >
             Home
-          </Link>
+          </NavLink>
 
-          <Link to="/products" onClick={() => setMenuOpen(false)}>
+          <NavLink to="/products" onClick={() => setMenuOpen(false)}>
             Products
-          </Link>
+          </NavLink>
 
           {user && (
-            <Link to="/cart" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/cart" onClick={() => setMenuOpen(false)}>
               Cart
-            </Link>
+            </NavLink>
           )}
 
           {user && (
-            <Link to="/orders" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/orders" onClick={() => setMenuOpen(false)}>
               Orders
-            </Link>
+            </NavLink>
           )}
 
           {user?.role === "admin" && (
-            <Link to="/admin/products" onClick={() => setMenuOpen(false)}>
+            <NavLink
+              to="/admin/products"
+              onClick={() => setMenuOpen(false)}
+            >
               Admin
-            </Link>
+            </NavLink>
           )}
         </div>
 
@@ -91,11 +99,19 @@ function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-outline">
+              <Link
+                className="btn btn-outline"
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+              >
                 Login
               </Link>
 
-              <Link to="/register" className="btn btn-primary">
+              <Link
+                className="btn btn-primary"
+                to="/register"
+                onClick={() => setMenuOpen(false)}
+              >
                 Register
               </Link>
             </>
