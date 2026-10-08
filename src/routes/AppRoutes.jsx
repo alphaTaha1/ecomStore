@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import Login from "../features/auth/Login.jsx";
 import Register from "../features/auth/Register.jsx";
@@ -9,13 +9,14 @@ import Checkout from "../features/orders/Checkout.jsx";
 import OrderDetails from "../features/orders/OrderDetails.jsx";
 import Orders from "../features/orders/Orders.jsx";
 import AdminProducts from "../pages/AdminProducts.jsx";
+import Home from "../pages/Home.jsx";
 import NotFound from "../pages/NotFound.jsx";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* First page */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* Home */}
+      <Route path="/" element={<Home />} />
 
       {/* Authentication */}
       <Route path="/login" element={<Login />} />
