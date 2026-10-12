@@ -1,53 +1,67 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
-import { db } from "../features/auth/firebase/config";
+import {
+  getProducts,
+  seedSampleProducts,
+} from "../features/catalog/productService";
+
+const dummyInventory = [
+  {
+    id: "inventory-1",
+    name: "Wireless Headphones",
+    description:
+      "Premium wireless headphones with clear sound and deep bass.",
+    price: 4999,
+    imageUrl:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
+    sku: "AUD-001",
+    category: "Electronics",
+    stock: 24,
+  },
+  {
+    id: "inventory-2",
+    name: "Smart Watch",
+    description:
+      "Modern smartwatch with fitness tracking and notifications.",
+    price: 7999,
+    imageUrl:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
+    sku: "WAT-002",
+    category: "Electronics",
+    stock: 8,
+  },
+  {
+    id: "inventory-3",
+    name: "Running Shoes",
+    description:
+      "Comfortable running shoes designed for everyday activity.",
+    price: 6499,
+    imageUrl:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
+    sku: "SHO-003",
+    category: "Footwear",
+    stock: 4,
+  },
+  {
+    id: "inventory-4",
+    name: "Backpack",
+    description:
+      "Durable backpack with plenty of space for everyday essentials.",
+    price: 3499,
+    imageUrl:
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600",
+    sku: "BAG-004",
+    category: "Accessories",
+    stock: 16,
+  },
+];
 
 function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const dummyProducts = [
-    {
-      id: "dummy-1",
-      name: "Wireless Headphones",
-      price: 4999,
-      imageUrl:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
-      description:
-        "Premium wireless headphones with clear sound and deep bass.",
-    },
-    {
-      id: "dummy-2",
-      name: "Smart Watch",
-      price: 7999,
-      imageUrl:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
-      description:
-        "Modern smartwatch with fitness tracking and notifications.",
-    },
-    {
-      id: "dummy-3",
-      name: "Running Shoes",
-      price: 6499,
-      imageUrl:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-      description:
-        "Comfortable running shoes designed for everyday activity.",
-    },
-    {
-      id: "dummy-4",
-      name: "Backpack",
-      price: 3499,
-      imageUrl:
-        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600",
-      description:
-        "Durable backpack with plenty of space for everyday essentials.",
-    },
-  ];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -55,21 +69,11 @@ function Home() {
         setLoading(true);
         setError("");
 
-        const productsSnapshot = await getDocs(
-          collection(db, "products")
-        );
-
-        const productsData = productsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        console.log("Products from Firebase:", productsData);
-
-        setProducts(productsData);
+        await seedSampleProducts(dummyInventory);
+        setProducts(await getProducts());
       } catch (error) {
-        console.error("Error loading products:", error);
-        setError("Unable to load products.");
+        console.error("Error seeding or loading products:", error);
+        setError("Unable to load products or save sample inventory.");
       } finally {
         setLoading(false);
       }
@@ -79,9 +83,16 @@ function Home() {
   }, []);
 
   const productsToDisplay =
-    products.length > 0 ? products : dummyProducts;
+    products.length > 0 ? products : dummyInventory;
 
   const featuredProducts = productsToDisplay.slice(0, 4);
+  const inventoryToDisplay =
+    products.filter(
+      (product) =>
+        typeof product.sku === "string" && typeof product.stock === "number"
+    );
+  const inventoryItems =
+    inventoryToDisplay.length > 0 ? inventoryToDisplay : dummyInventory;
 
   return (
     <>
@@ -158,6 +169,49 @@ function Home() {
             >
               View All Products
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Sample Inventory */}
+      <section className="section inventory-section">
+        <div className="page-container">
+          <div className="section-title">
+            <h2>Sample Inventory</h2>
+            <p>A list of sample items currently stored in inventory.</p>
+          </div>
+
+          <div className="inventory-table-wrapper">
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th scope="col">Item</th>
+                  <th scope="col">SKU</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inventoryItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.name}</td>
+                    <td>{item.sku}</td>
+                    <td>{item.category}</td>
+                    <td>{item.stock}</td>
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          item.stock <= 5 ? "status-pending" : "status-paid"
+                        }`}
+                      >
+                        {item.stock <= 5 ? "Low stock" : "In stock"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

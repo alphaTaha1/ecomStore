@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../auth/firebase/config.js";
 
@@ -16,6 +17,30 @@ export async function getProducts() {
     id: productDoc.id,
     ...productDoc.data(),
   }));
+}
+
+export async function seedSampleProducts(products) {
+  const productRefs = products.map((product) =>
+    doc(db, "products", product.id)
+  );
+  const existingProducts = await Promise.all(productRefs.map(getDoc));
+  const batch = writeBatch(db);
+  let hasNewProducts = false;
+
+  existingProducts.forEach((productSnapshot, index) => {
+    if (!productSnapshot.exists()) {
+      const { id, ...productData } = products[index];
+      batch.set(productRefs[index], {
+        ...productData,
+        createdAt: serverTimestamp(),
+      });
+      hasNewProducts = true;
+    }
+  });
+
+  if (hasNewProducts) {
+    await batch.commit();
+  }
 }
 
 export async function getProductById(productId) {
