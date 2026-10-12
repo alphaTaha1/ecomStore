@@ -1,36 +1,41 @@
-import { filterInStock } from './filterInStock';
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect } from "vitest";
+import { getProducts } from "../../src/features/catalog/productService.js";
+import { filterInStock } from "./filterInStock.js";
+describe("filterInStock - Firebase integration", () => {
+  test("returns only products with positive stock", async () => {
+    const products = await getProducts();
+    const result = filterInStock(products);
 
-const rice = { id: '1', name: 'Rice', stock: 10 };
-const milk = { id: '2', name: 'Milk', stock: 0 };
-const eggs = { id: '3', name: 'Eggs', stock: 24 };
-
-describe('filterInStock', () => {
-  test('returns an empty array for an empty array', () => {
-    expect(filterInStock([])).toEqual([]);
+    expect(
+      result.every(
+        (product) =>
+          typeof product.stock === "number" &&
+          Number.isFinite(product.stock) &&
+          product.stock > 0
+      )
+    ).toBe(true);
   });
 
-  test('returns all products when all are in stock', () => {
-    expect(filterInStock([rice, eggs])).toEqual([rice, eggs]);
+  test("preserves the order of in-stock products", async () => {
+    const products = await getProducts();
+    const result = filterInStock(products);
+
+    const expected = products.filter(
+      (product) =>
+        typeof product.stock === "number" &&
+        Number.isFinite(product.stock) &&
+        product.stock > 0
+    );
+
+    expect(result).toEqual(expected);
   });
 
-  test('returns an empty array when none are in stock', () => {
-    expect(filterInStock([milk, { ...milk, id: '4' }])).toEqual([]);
-  });
+  test("does not mutate the products returned by Firebase", async () => {
+    const products = await getProducts();
+    const original = structuredClone(products);
 
-  test('returns only in-stock products from a mixed list', () => {
-    expect(filterInStock([rice, milk, eggs])).toEqual([rice, eggs]);
-  });
+    filterInStock(products);
 
-  test('keeps the original order', () => {
-    const result = filterInStock([eggs, milk, rice]);
-    expect(result.map((p) => p.id)).toEqual(['3', '1']);
-  });
-
-  test('does not mutate the input array', () => {
-    const input = [rice, milk, eggs];
-    const copy = [...input];
-    filterInStock(input);
-    expect(input).toEqual(copy);
+    expect(products).toEqual(original);
   });
 });
